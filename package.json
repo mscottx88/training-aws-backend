@@ -7,7 +7,11 @@
   "private": true,
   "scripts": {
     "format": "yarn format:tf",
-    "format:tf": "terraform fmt --recursive"
+    "format:tf": "terraform fmt --recursive",
+    "terraform:apply": "cd terraform && terraform apply",
+    "terraform:init": "node -r ts-node/register ./scripts/init.ts",
+    "terraform:plan": "cd terraform && terraform plan",
+    "terraform:sh": "aws-vault exec formidable-training --no-session"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.180",

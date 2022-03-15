@@ -33,7 +33,11 @@ export class ExtractReportData {
     for (let segment: number = 0; segment < totalSegments; segment++) {
       segments.push(
         extractReportData.target.createMany(() =>
-          extractReportData.source.rows({ segment, totalSegments })
+          extractReportData.source.rows({
+            filters: { data: { scale: [5, 10, 15, 20, 25] } },
+            segment,
+            totalSegments,
+          })
         )
       );
     }

@@ -18,6 +18,7 @@ export class MockReportData extends DynamoDbAdapter {
         data: {
           createdAt: new Date().toISOString(),
           foo: 'bar',
+          scale: Math.round(Math.random() * 100),
         },
       };
     }

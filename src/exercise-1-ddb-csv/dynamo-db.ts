@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import { Utils } from './utils';
 
 export interface IRows {
+  filters?: Record<string, any>;
   onTimeout?: (resumeAfter?: string) => void;
   resumeAfter?: string;
   segment?: number;
@@ -30,6 +31,84 @@ export const DEFAULT_LIMIT: number = 1000;
 export const MAX_BATCH_SIZE: number = 25;
 
 export class DynamoDB {
+  public static buildFilterExpression(
+    filters: Record<string, any> = {},
+    names: Record<string, string> = {},
+    values: Record<string, any> = {}
+  ): string | undefined {
+    const fragments: string[] = [];
+
+    const encodePath = (path: string[]): string =>
+      path.map((key: string) => `#${key}`).join('.');
+
+    const parseArray = (pointer: any[], path: string[], key: string): void => {
+      let fragment: string = '';
+      let nullValueFound: boolean = false;
+
+      names[`#${key}`] = key;
+
+      for (const [index, value] of Object.entries(pointer)) {
+        if (value === undefined) {
+          continue;
+        }
+        nullValueFound ||= value === null;
+
+        if (fragment) {
+          fragment += ', ';
+        } else {
+          fragment = `${encodePath(path)} IN (`;
+        }
+        fragment += `:${key}${index}`;
+
+        values[`:${key}${index}`] = value;
+      }
+
+      if (fragment) {
+        fragment += ')';
+        if (nullValueFound) {
+          fragment = `(${fragment} OR attribute_not_exists(${encodePath(
+            path
+          )}))`;
+        }
+        fragments.push(fragment);
+      }
+    };
+
+    const parseObject = (
+      pointer: Record<string, any>,
+      path: string[] = [],
+      key: string = ''
+    ): void => {
+      if (pointer === null || pointer === undefined) {
+        return;
+      }
+
+      switch (typeof pointer) {
+        case 'object':
+          if (Array.isArray(pointer)) {
+            parseArray(pointer, path, key);
+          } else {
+            for (const [subKey, value] of Object.entries(pointer)) {
+              names[`#${subKey}`] = subKey;
+              parseObject(value, [...path, subKey], subKey);
+            }
+          }
+          break;
+
+        case 'bigint':
+        case 'boolean':
+        case 'number':
+        case 'string':
+          parseArray([pointer], path, key);
+          break;
+      }
+    };
+
+    parseObject(filters);
+
+    return fragments.length > 0 ? fragments.join(' AND ') : undefined;
+  }
+
   public static decodeResumeAfter(
     resumeAfter?: string
   ): AWS.DynamoDB.DocumentClient.Key | undefined {
@@ -109,8 +188,8 @@ export class DynamoDB {
       objectMode: true,
       async read(this: Readable): Promise<void> {
         await rows(this);
-      }
-    })
+      },
+    });
   }
 
   public async deleteMany(keys: ForAwaitable<Keys>): Promise<void> {
@@ -141,6 +220,7 @@ export class DynamoDB {
     const START_TIME: [number, number] = process.hrtime();
 
     const {
+      filters,
       onTimeout,
       resumeAfter,
       segment,
@@ -152,11 +232,22 @@ export class DynamoDB {
       DynamoDB.decodeResumeAfter(resumeAfter);
     let rows: AWS.DynamoDB.DocumentClient.ItemList | undefined;
 
+    const names: Record<string, string> | undefined = {};
+    const values: Record<string, any> | undefined = {};
+    const filterExpression: string | undefined = DynamoDB.buildFilterExpression(
+      filters,
+      names,
+      values
+    );
+
     do {
       ({ Items: rows = [], LastEvaluatedKey: lastEvaluatedKey } =
         await this.client
           .scan({
             ExclusiveStartKey: lastEvaluatedKey,
+            ExpressionAttributeNames: filterExpression ? names : undefined,
+            ExpressionAttributeValues: filterExpression ? values : undefined,
+            FilterExpression: filterExpression,
             Segment: segment,
             TableName: this.tableName,
             TotalSegments: totalSegments,

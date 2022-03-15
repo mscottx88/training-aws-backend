@@ -3,12 +3,13 @@ provider "aws" {
   version = "~> 3.74"
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
-  terraform_state_bucket_name     = "formidablelabs-training-aws-backend-terraform-state"
+  aws_account_id                  = data.aws_caller_identity.current.account_id
+  terraform_state_bucket_name     = "${local.aws_account_id}-training-aws-backend-terraform-state"
   terraform_state_lock_table_name = "training-aws-backend-terraform-locks"
 }
-
-data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "tfstate" {
   statement {
