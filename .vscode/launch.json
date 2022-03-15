@@ -1,0 +1,75 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Assume Role And Launch",
+      "protocol": "inspector",
+      "program": "./scripts/assume-role.ts",
+      "args": ["${workspaceRoot}/${relativeFile}"],
+      "cwd": "${workspaceRoot}",
+      "envFile": "${workspaceRoot}/.env",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "autoAttachChildProcesses": true,
+      "skipFiles": [
+        "${workspaceRoot}/node_modules/**/*",
+        "<node_internals>/**/*"
+      ],
+      "windows": {
+        "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch File w/ ts-node",
+      "protocol": "inspector",
+      "args": ["${relativeFile}"],
+      "cwd": "${workspaceRoot}",
+      "envFile": "${workspaceRoot}/.env",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "${workspaceRoot}/node_modules/**/*",
+        "<node_internals>/**/*"
+      ],
+      "windows": {
+        "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Spec File w/ ts-node",
+      "protocol": "inspector",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+        "--runTestsByPath",
+        "${relativeFile}",
+        "--runInBand",
+        "--colors",
+        "--verbose=false",
+        "--collectCoverage=false",
+        "--testTimeout=10000000",
+        "--testPathPattern=${fileDirname}",
+        "--config",
+        "${workspaceRoot}/jest.config.js"
+      ],
+      "outputCapture": "std",
+      "internalConsoleOptions": "openOnSessionStart",
+      "envFile": "${workspaceRoot}/.env",
+      "skipFiles": [
+        "${workspaceRoot}/../../node_modules/**/*",
+        "<node_internals>/**/*"
+      ],
+      "windows": {
+        "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
+      },
+      "disableOptimisticBPs": true
+    }
+  ]
+}
