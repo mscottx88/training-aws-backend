@@ -31,39 +31,35 @@ export class DynamoDB {
   ): string | undefined {
     const fragments: string[] = [];
 
-    const encodePath = (path: string[]): string =>
+    const encodeKey = (path: string[]): string =>
       path.map((key: string) => `#${key}`).join('.');
 
+    const encodeValue = (path: string[]): string => `:${path.join('_')}`;
+
     const parseArray = (pointer: any[], path: string[], key: string): void => {
-      let fragment: string = '';
+      const conditions: string[] = [];
+      const terms: string[] = [];
       let nullValueFound: boolean = false;
-
-      names[`#${key}`] = key;
-
       for (const [index, value] of Object.entries(pointer)) {
         if (value === undefined) {
           continue;
         }
+
+        const encodedValue: string = encodeValue([...path, index]);
+        values[encodedValue] = value;
+        terms.push(encodedValue);
         nullValueFound ||= value === null;
-
-        if (fragment) {
-          fragment += ', ';
-        } else {
-          fragment = `${encodePath(path)} IN (`;
-        }
-        fragment += `:${key}${index}`;
-
-        values[`:${key}${index}`] = value;
       }
 
-      if (fragment) {
-        fragment += ')';
-        if (nullValueFound) {
-          fragment = `(${fragment} OR attribute_not_exists(${encodePath(
-            path
-          )}))`;
-        }
-        fragments.push(fragment);
+      if (terms.length > 0) {
+        conditions.push(`${encodeKey(path)} IN (${terms.join(', ')})`);
+      }
+      if (nullValueFound) {
+        conditions.push(`attribute_not_exists(${encodeKey(path)})`);
+      }
+
+      if (conditions.length > 0) {
+        fragments.push(`(${conditions.join(' OR ')})`);
       }
     };
 
@@ -72,17 +68,16 @@ export class DynamoDB {
       path: string[] = [],
       key: string = ''
     ): void => {
-      if (pointer === null || pointer === undefined) {
-        return;
+      if (key) {
+        names[`#${key}`] = key;
       }
 
       switch (typeof pointer) {
         case 'object':
           if (Array.isArray(pointer)) {
             parseArray(pointer, path, key);
-          } else {
+          } else if (pointer !== null) {
             for (const [subKey, value] of Object.entries(pointer)) {
-              names[`#${subKey}`] = subKey;
               parseObject(value, [...path, subKey], subKey);
             }
           }

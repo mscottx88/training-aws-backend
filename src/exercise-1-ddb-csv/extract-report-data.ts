@@ -1,3 +1,4 @@
+import { v1 as uuid } from 'uuid';
 import * as DynamoDB from './dynamo-db';
 
 export interface IServiceConfig {
@@ -29,17 +30,30 @@ export class ExtractReportData {
     const extractReportData = new this(await this.getConfig());
     const { totalSegments }: IServiceConfig = extractReportData.config;
 
+    const reportId: string = uuid();
+
+    const rows = async function* (
+      segment: number
+    ): AsyncIterableIterator<DynamoDB.Row> {
+      const selection: DynamoDB.IRows = {
+        filters: { data: { scale: [5, 10, 15, 20, 25] } },
+        segment,
+        totalSegments,
+      };
+
+      for await (const row of extractReportData.source.rows(selection)) {
+        const { pk, sk, ...data }: DynamoDB.Row = row;
+        yield {
+          data,
+          pk: reportId,
+          sk: `${pk}/${sk}`,
+        };
+      }
+    };
+
     const segments: Promise<void>[] = [];
     for (let segment: number = 0; segment < totalSegments; segment++) {
-      segments.push(
-        extractReportData.target.createMany(() =>
-          extractReportData.source.rows({
-            filters: { data: { scale: [5, 10, 15, 20, 25] } },
-            segment,
-            totalSegments,
-          })
-        )
-      );
+      segments.push(extractReportData.target.createMany(rows));
     }
 
     await Promise.all(segments);
