@@ -1,6 +1,11 @@
 import * as AWS from 'aws-sdk';
 import { Readable } from 'stream';
-import { ForAwaitable, Utils } from './utils';
+import { ForAwaitable, Utils } from '../utils';
+
+export interface ICreateReadableStream {
+  filters?: Record<string, any>;
+  formatRow?: (row: Row) => Row | null | undefined;
+}
 
 export interface IRows {
   filters?: Record<string, any>;
@@ -157,13 +162,25 @@ export class DynamoDB {
     }
   }
 
-  public createReadableStream(): Readable {
+  public createReadableStream(
+    options: Partial<ICreateReadableStream> = {}
+  ): Readable {
+    const { filters, formatRow }: Partial<ICreateReadableStream> = options;
+
     let resumeAfter: string | undefined;
 
     const rows = async (stream: Readable): Promise<void> => {
-      for await (const row of this.rows({ resumeAfter })) {
+      for await (const row of this.rows({ filters, resumeAfter })) {
         const { pk, sk }: Row = row;
-        if (!stream.push(row)) {
+
+        const data: Row | null | undefined = formatRow ? formatRow(row) : row;
+        if (data === undefined) {
+          continue;
+        }
+        if (data === null) {
+          break;
+        }
+        if (!stream.push(data)) {
           resumeAfter = DynamoDB.encodeResumeAfter({ pk, sk });
           return;
         }

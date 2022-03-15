@@ -1,8 +1,8 @@
 import { fork } from 'child_process';
-import { runCommand } from './utils';
+import { Utils } from '../src/utils';
 
 export async function main() {
-  const output: string = await runCommand(
+  const output: string = await Utils.runCommand(
     'aws-vault exec formidable-training --no-session -- env'
   );
 

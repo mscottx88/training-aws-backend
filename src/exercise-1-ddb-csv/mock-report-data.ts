@@ -13,13 +13,11 @@ export class MockReportData extends DynamoDbAdapter {
   public *mockRows(limit = DEFAULT_LIMIT): IterableIterator<Row> {
     for (let index: number = 0; index < limit; index++) {
       yield {
+        createdAt: new Date().toISOString(),
+        foo: 'bar',
         pk: uuid(),
+        scale: Math.round(Math.random() * 100),
         sk: 'data',
-        data: {
-          createdAt: new Date().toISOString(),
-          foo: 'bar',
-          scale: Math.round(Math.random() * 100),
-        },
       };
     }
   }

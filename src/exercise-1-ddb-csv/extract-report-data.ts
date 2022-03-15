@@ -1,6 +1,10 @@
 import { v1 as uuid } from 'uuid';
 import * as DynamoDB from './dynamo-db';
 
+export interface IMain {
+  reportId?: string;
+}
+
 export interface IServiceConfig {
   sourceTableName: string;
   targetTableName: string;
@@ -26,17 +30,17 @@ export class ExtractReportData {
     };
   }
 
-  public static async main(): Promise<void> {
+  public static async main(options: Partial<IMain> = {}): Promise<string> {
+    const { reportId = uuid() }: Partial<IMain> = options;
+
     const extractReportData = new this(await this.getConfig());
     const { totalSegments }: IServiceConfig = extractReportData.config;
-
-    const reportId: string = uuid();
 
     const rows = async function* (
       segment: number
     ): AsyncIterableIterator<DynamoDB.Row> {
       const selection: DynamoDB.IRows = {
-        filters: { data: { scale: [5, 10, 15, 20, 25] } },
+        filters: { scale: [5, 10, 15, 20, 25] },
         segment,
         totalSegments,
       };
@@ -53,10 +57,12 @@ export class ExtractReportData {
 
     const segments: Promise<void>[] = [];
     for (let segment: number = 0; segment < totalSegments; segment++) {
-      segments.push(extractReportData.target.createMany(rows));
+      segments.push(extractReportData.target.createMany(() => rows(segment)));
     }
 
     await Promise.all(segments);
+
+    return reportId;
   }
 
   public readonly config: IServiceConfig;
@@ -70,5 +76,7 @@ export class ExtractReportData {
     this.target = new DynamoDB.Service({ tableName: targetTableName });
   }
 }
+
+export { ExtractReportData as Service };
 
 if (require.main === module) (async () => await ExtractReportData.main())();
