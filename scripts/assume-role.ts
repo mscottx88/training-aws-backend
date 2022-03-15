@@ -13,23 +13,7 @@ export async function main() {
   }
 
   const [script, ...args]: string[] = process.argv.slice(2);
-
-  await new Promise<void>((resolve, reject) => {
-    const cp = fork(script, args);
-
-    const onExit = (code?: number | NodeJS.Signals): boolean => cp.kill(code);
-    process.once('exit', onExit);
-
-    cp.once('exit', (code, signal) => {
-      process.removeListener('exit', onExit);
-
-      if (code || signal) {
-        reject(code || signal);
-      } else {
-        resolve();
-      }
-    });
-  });
+  fork(script, args, { detached: true })
 }
 
 if (require.main === module) (async () => await main())();

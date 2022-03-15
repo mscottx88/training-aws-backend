@@ -17,10 +17,12 @@ export abstract class DynamoDbAdapter {
     };
   }
 
+  public readonly config: IServiceConfig;
   public readonly dynamoDB: DynamoDB.Service;
 
   constructor(config: IServiceConfig) {
     const { tableName }: IServiceConfig = config;
+    this.config = config;
     this.dynamoDB = new DynamoDB.Service({ tableName });
   }
 }

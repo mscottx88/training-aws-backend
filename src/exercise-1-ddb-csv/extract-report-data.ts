@@ -3,6 +3,7 @@ import { DynamoDB } from './dynamo-db';
 export interface IServiceConfig {
   sourceTableName: string;
   tempTableName: string;
+  totalSegments: number;
 }
 
 export const TOTAL_SEGMENTS: number = 10;
@@ -14,22 +15,25 @@ export class ExtractReportData {
     const {
       sourceTableName = 'exercise-1-ddb-csv-report-data',
       tempTableName = 'exercise-1-ddb-csv-report-temp-data',
+      totalSegments = TOTAL_SEGMENTS,
     }: Partial<IServiceConfig> = options;
 
     return {
       sourceTableName,
       tempTableName,
+      totalSegments,
     };
   }
 
   public static async main(): Promise<void> {
-    const instance = await this.new();
+    const extractReportData = new this(await this.getConfig());
+    const { totalSegments }: IServiceConfig = extractReportData.config;
 
     const segments: Promise<void>[] = [];
-    for (let segment: number = 0; segment < TOTAL_SEGMENTS; segment++) {
+    for (let segment: number = 0; segment < totalSegments; segment++) {
       segments.push(
-        instance.temp.createMany(() =>
-          instance.source.rows({ segment, totalSegments: TOTAL_SEGMENTS })
+        extractReportData.temp.createMany(() =>
+          extractReportData.source.rows({ segment, totalSegments })
         )
       );
     }
@@ -37,15 +41,13 @@ export class ExtractReportData {
     await Promise.all(segments);
   }
 
-  public static async new(): Promise<ExtractReportData> {
-    return new this(await this.getConfig());
-  }
-
+  public readonly config: IServiceConfig;
   public readonly source: DynamoDB;
   public readonly temp: DynamoDB;
 
   constructor(config: IServiceConfig) {
     const { sourceTableName, tempTableName }: IServiceConfig = config;
+    this.config = config;
     this.source = new DynamoDB({ tableName: sourceTableName });
     this.temp = new DynamoDB({ tableName: tempTableName });
   }

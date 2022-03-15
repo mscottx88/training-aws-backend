@@ -7,16 +7,11 @@ export interface IServiceConfig {
 }
 
 export const DEFAULT_LIMIT: number = 1000;
-export const MAX_BATCH_SIZE: number = 25;
 
 export class MockReportData extends DynamoDbAdapter {
   public static async main(): Promise<void> {
-    const instance = await this.new();
-    await instance.dynamoDB.createMany(instance.mockRows.bind(instance));
-  }
-
-  public static async new(): Promise<MockReportData> {
-    return new this(await this.getConfig());
+    const mockReportData = new this(await this.getConfig());
+    await mockReportData.dynamoDB.createMany(() => mockReportData.mockRows());
   }
 
   public *mockRows(limit = DEFAULT_LIMIT): IterableIterator<Row> {

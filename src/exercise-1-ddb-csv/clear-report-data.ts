@@ -6,12 +6,8 @@ export interface IServiceConfig {
 
 export class ClearReportData extends DynamoDbAdapter {
   public static async main(): Promise<void> {
-    const instance = await this.new();
-    await instance.dynamoDB.deleteMany(instance.dynamoDB.keys.bind(instance));
-  }
-
-  public static async new(): Promise<ClearReportData> {
-    return new this(await this.getConfig());
+    const clearReportData = new this(await this.getConfig());
+    await clearReportData.dynamoDB.deleteMany(() => clearReportData.dynamoDB.keys());
   }
 }
 
