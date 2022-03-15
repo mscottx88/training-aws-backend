@@ -1,8 +1,8 @@
-import { DynamoDB } from './dynamo-db';
+import * as DynamoDB from './dynamo-db';
 
 export interface IServiceConfig {
   sourceTableName: string;
-  tempTableName: string;
+  targetTableName: string;
   totalSegments: number;
 }
 
@@ -14,13 +14,13 @@ export class ExtractReportData {
   ): Promise<IServiceConfig> {
     const {
       sourceTableName = 'exercise-1-ddb-csv-report-data',
-      tempTableName = 'exercise-1-ddb-csv-report-temp-data',
+      targetTableName = 'exercise-1-ddb-csv-report-temp-data',
       totalSegments = TOTAL_SEGMENTS,
     }: Partial<IServiceConfig> = options;
 
     return {
       sourceTableName,
-      tempTableName,
+      targetTableName,
       totalSegments,
     };
   }
@@ -32,7 +32,7 @@ export class ExtractReportData {
     const segments: Promise<void>[] = [];
     for (let segment: number = 0; segment < totalSegments; segment++) {
       segments.push(
-        extractReportData.temp.createMany(() =>
+        extractReportData.target.createMany(() =>
           extractReportData.source.rows({ segment, totalSegments })
         )
       );
@@ -42,14 +42,14 @@ export class ExtractReportData {
   }
 
   public readonly config: IServiceConfig;
-  public readonly source: DynamoDB;
-  public readonly temp: DynamoDB;
+  public readonly source: DynamoDB.Service;
+  public readonly target: DynamoDB.Service;
 
   constructor(config: IServiceConfig) {
-    const { sourceTableName, tempTableName }: IServiceConfig = config;
+    const { sourceTableName, targetTableName }: IServiceConfig = config;
     this.config = config;
-    this.source = new DynamoDB({ tableName: sourceTableName });
-    this.temp = new DynamoDB({ tableName: tempTableName });
+    this.source = new DynamoDB.Service({ tableName: sourceTableName });
+    this.target = new DynamoDB.Service({ tableName: targetTableName });
   }
 }
 

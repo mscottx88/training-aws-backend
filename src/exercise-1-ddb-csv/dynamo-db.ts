@@ -1,5 +1,4 @@
 import * as AWS from 'aws-sdk';
-import { read } from 'fs';
 import { Readable } from 'stream';
 import { Utils } from './utils';
 
