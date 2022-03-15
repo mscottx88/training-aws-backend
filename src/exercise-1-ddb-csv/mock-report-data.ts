@@ -2,10 +2,6 @@ import { v1 as uuid } from 'uuid';
 import { Row } from './dynamo-db';
 import { DynamoDbAdapter } from './dynamo-db-adapter';
 
-export interface IServiceConfig {
-  tableName: string;
-}
-
 export const DEFAULT_LIMIT: number = 1000;
 
 export class MockReportData extends DynamoDbAdapter {
