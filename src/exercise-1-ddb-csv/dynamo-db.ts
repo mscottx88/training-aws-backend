@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { Readable } from 'stream';
-import { Utils } from './utils';
+import { ForAwaitable, Utils } from './utils';
 
 export interface IRows {
   filters?: Record<string, any>;
@@ -14,13 +14,6 @@ export interface IRows {
 export interface IServiceOptions {
   tableName: string;
 }
-
-export type ForAwaitable<T> =
-  | T[]
-  | ((
-      this: any,
-      ...args: any[]
-    ) => AsyncIterableIterator<T> | IterableIterator<T>);
 
 export type IKeys = IRows;
 
