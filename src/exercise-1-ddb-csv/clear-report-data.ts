@@ -4,15 +4,16 @@ export interface IServiceConfig {
   tableName: string;
 }
 
-export const DEFAULT_LIMIT: number = 1000;
-export const MAX_BATCH_SIZE: number = 25;
-
 export class ClearReportData {
   public static async getConfig(
     options: Partial<IServiceConfig> = {}
   ): Promise<IServiceConfig> {
+    const {
+      tableName = 'exercise-1-ddb-csv-report-data',
+    }: Partial<IServiceConfig> = options;
+
     return {
-      tableName: 'exercise-1-ddb-csv-report-data',
+      tableName,
     };
   }
 
@@ -29,7 +30,7 @@ export class ClearReportData {
 
   constructor(config: IServiceConfig) {
     const { tableName }: IServiceConfig = config;
-    this.dynamoDB = new DynamoDB(tableName);
+    this.dynamoDB = new DynamoDB({ tableName });
   }
 
   public async *keys(): AsyncIterableIterator<Keys> {

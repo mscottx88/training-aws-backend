@@ -12,8 +12,12 @@ export class MockReportData {
   public static async getConfig(
     options: Partial<IServiceConfig> = {}
   ): Promise<IServiceConfig> {
+    const {
+      tableName = 'exercise-1-ddb-csv-report-data',
+    }: Partial<IServiceConfig> = options;
+
     return {
-      tableName: 'exercise-1-ddb-csv-report-data',
+      tableName,
     };
   }
 
@@ -30,7 +34,7 @@ export class MockReportData {
 
   constructor(config: IServiceConfig) {
     const { tableName }: IServiceConfig = config;
-    this.dynamoDB = new DynamoDB(tableName);
+    this.dynamoDB = new DynamoDB({ tableName });
   }
 
   public *rows(limit = DEFAULT_LIMIT): IterableIterator<Row> {

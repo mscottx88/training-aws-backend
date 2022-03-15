@@ -9,6 +9,10 @@ export interface IScan {
   totalSegments?: number;
 }
 
+export interface IServiceOptions {
+  tableName: string;
+}
+
 export type ForAwaitable<T> =
   | T[]
   | ((
@@ -44,7 +48,9 @@ export class DynamoDB {
   public readonly client: AWS.DynamoDB.DocumentClient;
   public readonly tableName: string;
 
-  constructor(tableName: string) {
+  constructor(options: IServiceOptions) {
+    const { tableName }: IServiceOptions = options;
+
     this.client = new AWS.DynamoDB.DocumentClient();
     this.tableName = tableName;
   }

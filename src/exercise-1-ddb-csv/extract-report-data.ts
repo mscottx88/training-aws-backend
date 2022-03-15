@@ -11,9 +11,14 @@ export class ExtractReportData {
   public static async getConfig(
     options: Partial<IServiceConfig> = {}
   ): Promise<IServiceConfig> {
+    const {
+      sourceTableName = 'exercise-1-ddb-csv-report-data',
+      tempTableName = 'exercise-1-ddb-csv-report-temp-data',
+    }: Partial<IServiceConfig> = options;
+
     return {
-      sourceTableName: 'exercise-1-ddb-csv-report-data',
-      tempTableName: 'exercise-1-ddb-csv-report-temp-data',
+      sourceTableName,
+      tempTableName,
     };
   }
 
@@ -41,8 +46,8 @@ export class ExtractReportData {
 
   constructor(config: IServiceConfig) {
     const { sourceTableName, tempTableName }: IServiceConfig = config;
-    this.source = new DynamoDB(sourceTableName);
-    this.temp = new DynamoDB(tempTableName);
+    this.source = new DynamoDB({ tableName: sourceTableName });
+    this.temp = new DynamoDB({ tableName: tempTableName });
   }
 }
 
