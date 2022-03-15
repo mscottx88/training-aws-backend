@@ -1,7 +1,9 @@
 import * as AWS from 'aws-sdk';
+import { read } from 'fs';
+import { Readable } from 'stream';
 import { Utils } from './utils';
 
-export interface IScan {
+export interface IRows {
   onTimeout?: (resumeAfter?: string) => void;
   resumeAfter?: string;
   segment?: number;
@@ -19,6 +21,8 @@ export type ForAwaitable<T> =
       this: any,
       ...args: any[]
     ) => AsyncIterableIterator<T> | IterableIterator<T>);
+
+export type IKeys = IRows;
 
 export type Keys = Record<string, any>;
 export type Row = Record<string, any>;
@@ -87,6 +91,29 @@ export class DynamoDB {
     }
   }
 
+  public createReadableStream(): Readable {
+    let resumeAfter: string | undefined;
+
+    const rows = async (stream: Readable): Promise<void> => {
+      for await (const row of this.rows({ resumeAfter })) {
+        const { pk, sk }: Row = row;
+        if (!stream.push(row)) {
+          resumeAfter = DynamoDB.encodeResumeAfter({ pk, sk });
+          return;
+        }
+      }
+
+      stream.push(null);
+    };
+
+    return new Readable({
+      objectMode: true,
+      async read(this: Readable): Promise<void> {
+        await rows(this);
+      }
+    })
+  }
+
   public async deleteMany(keys: ForAwaitable<Keys>): Promise<void> {
     let batch: AWS.DynamoDB.DocumentClient.WriteRequests = [];
 
@@ -103,7 +130,15 @@ export class DynamoDB {
     }
   }
 
-  public async *scan(options: Partial<IScan> = {}): AsyncIterableIterator<Row> {
+  public async *keys(
+    options: Partial<IKeys> = {}
+  ): AsyncIterableIterator<Keys> {
+    for await (const { pk, sk } of this.rows(options)) {
+      yield { pk, sk };
+    }
+  }
+
+  public async *rows(options: Partial<IRows> = {}): AsyncIterableIterator<Row> {
     const START_TIME: [number, number] = process.hrtime();
 
     const {
@@ -112,7 +147,7 @@ export class DynamoDB {
       segment,
       timeoutMS = Infinity,
       totalSegments,
-    }: Partial<IScan> = options;
+    }: Partial<IRows> = options;
 
     let lastEvaluatedKey: AWS.DynamoDB.DocumentClient.Key | undefined =
       DynamoDB.decodeResumeAfter(resumeAfter);
@@ -129,9 +164,7 @@ export class DynamoDB {
           })
           .promise());
 
-      for (const row of rows) {
-        yield row;
-      }
+      yield* rows;
     } while (
       lastEvaluatedKey &&
       Utils.getElapsedTimeMS(START_TIME) < timeoutMS
@@ -142,3 +175,5 @@ export class DynamoDB {
     }
   }
 }
+
+export { DynamoDB as Service };

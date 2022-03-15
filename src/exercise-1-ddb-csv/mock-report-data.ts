@@ -1,5 +1,6 @@
 import { v1 as uuid } from 'uuid';
-import { DynamoDB, Row } from './dynamo-db';
+import { Row } from './dynamo-db';
+import { DynamoDbAdapter } from './dynamo-db-adapter';
 
 export interface IServiceConfig {
   tableName: string;
@@ -8,36 +9,17 @@ export interface IServiceConfig {
 export const DEFAULT_LIMIT: number = 1000;
 export const MAX_BATCH_SIZE: number = 25;
 
-export class MockReportData {
-  public static async getConfig(
-    options: Partial<IServiceConfig> = {}
-  ): Promise<IServiceConfig> {
-    const {
-      tableName = 'exercise-1-ddb-csv-report-data',
-    }: Partial<IServiceConfig> = options;
-
-    return {
-      tableName,
-    };
-  }
-
+export class MockReportData extends DynamoDbAdapter {
   public static async main(): Promise<void> {
     const instance = await this.new();
-    await instance.dynamoDB.createMany(instance.rows.bind(instance));
+    await instance.dynamoDB.createMany(instance.mockRows.bind(instance));
   }
 
   public static async new(): Promise<MockReportData> {
     return new this(await this.getConfig());
   }
 
-  public readonly dynamoDB: DynamoDB;
-
-  constructor(config: IServiceConfig) {
-    const { tableName }: IServiceConfig = config;
-    this.dynamoDB = new DynamoDB({ tableName });
-  }
-
-  public *rows(limit = DEFAULT_LIMIT): IterableIterator<Row> {
+  public *mockRows(limit = DEFAULT_LIMIT): IterableIterator<Row> {
     for (let index: number = 0; index < limit; index++) {
       yield {
         pk: uuid(),

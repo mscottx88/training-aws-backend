@@ -29,7 +29,7 @@ export class ExtractReportData {
     for (let segment: number = 0; segment < TOTAL_SEGMENTS; segment++) {
       segments.push(
         instance.temp.createMany(() =>
-          instance.source.scan({ segment, totalSegments: TOTAL_SEGMENTS })
+          instance.source.rows({ segment, totalSegments: TOTAL_SEGMENTS })
         )
       );
     }
