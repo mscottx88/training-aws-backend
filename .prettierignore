@@ -1,0 +1,7 @@
+coverage
+dist
+node_modules
+typedoc
+.terraform/
+*.tfstate
+*.tfstate.backup
