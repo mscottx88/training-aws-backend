@@ -1,6 +1,11 @@
 import * as AWS from 'aws-sdk';
 import { Readable } from 'stream';
-import { ForAwaitable, Utils } from '../utils';
+import * as Utils from '../utils';
+
+export enum Tables {
+  reportData = 'exercise-1-ddb-csv-report-data',
+  reportTempData = 'exercise-1-ddb-csv-report-temp-data',
+}
 
 export interface ICreateReadableStream {
   filters?: Record<string, any>;
@@ -32,12 +37,11 @@ export class DynamoDB {
   public static buildFilterExpression(
     filters: Record<string, any> = {},
     names: Record<string, string> = {},
-    values: Record<string, any> = {}
+    values: Record<string, any> = {},
   ): string | undefined {
     const fragments: string[] = [];
 
-    const encodeKey = (path: string[]): string =>
-      path.map((key: string) => `#${key}`).join('.');
+    const encodeKey = (path: string[]): string => path.map((key: string) => `#${key}`).join('.');
 
     const encodeValue = (path: string[]): string => `:${path.join('_')}`;
 
@@ -71,7 +75,7 @@ export class DynamoDB {
     const parseObject = (
       pointer: Record<string, any>,
       path: string[] = [],
-      key: string = ''
+      key: string = '',
     ): void => {
       if (key) {
         names[`#${key}`] = key;
@@ -103,21 +107,15 @@ export class DynamoDB {
   }
 
   public static decodeResumeAfter(
-    resumeAfter?: string
+    resumeAfter?: string,
   ): AWS.DynamoDB.DocumentClient.Key | undefined {
-    return (
-      resumeAfter &&
-      JSON.parse(Buffer.from(resumeAfter, 'base64').toString('utf8'))
-    );
+    return resumeAfter && JSON.parse(Buffer.from(resumeAfter, 'base64').toString('utf8'));
   }
 
   public static encodeResumeAfter(
-    resumeAfter?: AWS.DynamoDB.DocumentClient.Key
+    resumeAfter?: AWS.DynamoDB.DocumentClient.Key,
   ): string | undefined {
-    return (
-      resumeAfter &&
-      Buffer.from(JSON.stringify(resumeAfter), 'utf8').toString('base64')
-    );
+    return resumeAfter && Buffer.from(JSON.stringify(resumeAfter), 'utf8').toString('base64');
   }
 
   public readonly client: AWS.DynamoDB.DocumentClient;
@@ -130,23 +128,18 @@ export class DynamoDB {
     this.tableName = tableName;
   }
 
-  public async batchWrite(
-    batch: AWS.DynamoDB.DocumentClient.WriteRequests
-  ): Promise<void> {
+  public async batchWrite(batch: AWS.DynamoDB.DocumentClient.WriteRequests): Promise<void> {
     let requests: AWS.DynamoDB.DocumentClient.WriteRequests = [...batch];
 
     while (requests.length > 0) {
-      const {
-        UnprocessedItems,
-      }: AWS.DynamoDB.DocumentClient.BatchWriteItemOutput = await this.client
-        .batchWrite({ RequestItems: { [this.tableName]: requests } })
-        .promise();
+      const { UnprocessedItems }: AWS.DynamoDB.DocumentClient.BatchWriteItemOutput =
+        await this.client.batchWrite({ RequestItems: { [this.tableName]: requests } }).promise();
 
       ({ [this.tableName]: requests = [] } = UnprocessedItems || {});
     }
   }
 
-  public async createMany(rows: ForAwaitable<Row>): Promise<void> {
+  public async createMany(rows: Utils.ForAwaitable<Row>): Promise<void> {
     let batch: AWS.DynamoDB.DocumentClient.WriteRequests = [];
 
     try {
@@ -162,9 +155,7 @@ export class DynamoDB {
     }
   }
 
-  public createReadableStream(
-    options: Partial<ICreateReadableStream> = {}
-  ): Readable {
+  public createReadableStream(options: Partial<ICreateReadableStream> = {}): Readable {
     const { filters, formatRow }: Partial<ICreateReadableStream> = options;
 
     let resumeAfter: string | undefined;
@@ -197,7 +188,7 @@ export class DynamoDB {
     });
   }
 
-  public async deleteMany(keys: ForAwaitable<Keys>): Promise<void> {
+  public async deleteMany(keys: Utils.ForAwaitable<Keys>): Promise<void> {
     let batch: AWS.DynamoDB.DocumentClient.WriteRequests = [];
 
     try {
@@ -213,9 +204,7 @@ export class DynamoDB {
     }
   }
 
-  public async *keys(
-    options: Partial<IKeys> = {}
-  ): AsyncIterableIterator<Keys> {
+  public async *keys(options: Partial<IKeys> = {}): AsyncIterableIterator<Keys> {
     for await (const { pk, sk } of this.rows(options)) {
       yield { pk, sk };
     }
@@ -242,28 +231,24 @@ export class DynamoDB {
     const filterExpression: string | undefined = DynamoDB.buildFilterExpression(
       filters,
       names,
-      values
+      values,
     );
 
     do {
-      ({ Items: rows = [], LastEvaluatedKey: lastEvaluatedKey } =
-        await this.client
-          .scan({
-            ExclusiveStartKey: lastEvaluatedKey,
-            ExpressionAttributeNames: filterExpression ? names : undefined,
-            ExpressionAttributeValues: filterExpression ? values : undefined,
-            FilterExpression: filterExpression,
-            Segment: segment,
-            TableName: this.tableName,
-            TotalSegments: totalSegments,
-          })
-          .promise());
+      ({ Items: rows = [], LastEvaluatedKey: lastEvaluatedKey } = await this.client
+        .scan({
+          ExclusiveStartKey: lastEvaluatedKey,
+          ExpressionAttributeNames: filterExpression ? names : undefined,
+          ExpressionAttributeValues: filterExpression ? values : undefined,
+          FilterExpression: filterExpression,
+          Segment: segment,
+          TableName: this.tableName,
+          TotalSegments: totalSegments,
+        })
+        .promise());
 
       yield* rows;
-    } while (
-      lastEvaluatedKey &&
-      Utils.getElapsedTimeMS(START_TIME) < timeoutMS
-    );
+    } while (lastEvaluatedKey && Utils.Service.getElapsedTimeMS(START_TIME) < timeoutMS);
 
     if (lastEvaluatedKey) {
       onTimeout?.(DynamoDB.encodeResumeAfter(lastEvaluatedKey));

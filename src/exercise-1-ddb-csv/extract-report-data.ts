@@ -14,9 +14,7 @@ export interface IServiceConfig {
 export const TOTAL_SEGMENTS: number = 10;
 
 export class ExtractReportData {
-  public static async getConfig(
-    options: Partial<IServiceConfig> = {}
-  ): Promise<IServiceConfig> {
+  public static async getConfig(options: Partial<IServiceConfig> = {}): Promise<IServiceConfig> {
     const {
       sourceTableName = 'exercise-1-ddb-csv-report-data',
       targetTableName = 'exercise-1-ddb-csv-report-temp-data',
@@ -36,9 +34,7 @@ export class ExtractReportData {
     const extractReportData = new this(await this.getConfig());
     const { totalSegments }: IServiceConfig = extractReportData.config;
 
-    const rows = async function* (
-      segment: number
-    ): AsyncIterableIterator<DynamoDB.Row> {
+    const rows = async function* (segment: number): AsyncIterableIterator<DynamoDB.Row> {
       const selection: DynamoDB.IRows = {
         filters: { scale: [5, 10, 15, 20, 25] },
         segment,
@@ -47,6 +43,7 @@ export class ExtractReportData {
 
       for await (const row of extractReportData.source.rows(selection)) {
         const { pk, sk, ...data }: DynamoDB.Row = row;
+
         yield {
           data,
           pk: reportId,

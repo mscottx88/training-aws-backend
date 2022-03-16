@@ -5,12 +5,8 @@ export interface IServiceConfig {
 }
 
 export abstract class DynamoDbAdapter {
-  public static async getConfig(
-    options: Partial<IServiceConfig> = {}
-  ): Promise<IServiceConfig> {
-    const {
-      tableName = 'exercise-1-ddb-csv-report-data',
-    }: Partial<IServiceConfig> = options;
+  public static async getConfig(options: Partial<IServiceConfig> = {}): Promise<IServiceConfig> {
+    const { tableName = 'exercise-1-ddb-csv-report-data' }: Partial<IServiceConfig> = options;
 
     return {
       tableName,
@@ -26,3 +22,5 @@ export abstract class DynamoDbAdapter {
     this.dynamoDB = new DynamoDB.Service({ tableName });
   }
 }
+
+export { DynamoDbAdapter as Service };

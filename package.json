@@ -6,11 +6,14 @@
   "author": "Michael P. Scott <michael.scott123@t-mobile.com>",
   "private": true,
   "scripts": {
-    "format": "yarn format:tf",
+    "aws:console": "aws-vault login formidable-training",
+    "format": "yarn format:tf && yarn format:ts",
     "format:tf": "terraform fmt --recursive",
+    "format:ts": "prettier --write --config ./.prettierrc --ignore-path ./.prettierignore .",
     "terraform:apply": "cd terraform && terraform apply",
     "terraform:init": "node -r ts-node/register ./scripts/init.ts",
     "terraform:plan": "cd terraform && terraform plan",
+    "terraform:setup-backend": "cd terraform/remote-state && terraform init && terraform apply",
     "terraform:sh": "aws-vault exec formidable-training --no-session"
   },
   "devDependencies": {
@@ -18,6 +21,7 @@
     "@types/uuid": "^8.3.4",
     "aws-sdk": "^2.1093.0",
     "csv-stringify": "^6.0.5",
+    "prettier": "^2.6.0",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.2",
     "uuid": "^8.3.2"

@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as CSV from 'csv-stringify';
 import type { Readable } from 'stream';
-import { Utils } from '../utils';
+import * as Utils from '../utils';
 import * as DynamoDB from './dynamo-db';
 
 export interface IMain {
@@ -14,10 +14,8 @@ export interface IServiceConfig {
 }
 
 export class UploadReport {
-  public static async getConfig(
-    options: Partial<IServiceConfig> = {}
-  ): Promise<IServiceConfig> {
-    const accountId: string = await Utils.getAccountId();
+  public static async getConfig(options: Partial<IServiceConfig> = {}): Promise<IServiceConfig> {
+    const accountId: string = await Utils.Service.getAccountId();
 
     const {
       sourceTableName = 'exercise-1-ddb-csv-report-temp-data',
@@ -44,8 +42,7 @@ export class UploadReport {
 
     const stream: Readable = uploadReport.source.createReadableStream({
       filters: { pk: reportId },
-      formatRow: ({ data }: DynamoDB.Row): DynamoDB.Row | null | undefined =>
-        data,
+      formatRow: ({ data }: DynamoDB.Row): DynamoDB.Row | null | undefined => data,
     });
 
     await uploadReport.s3

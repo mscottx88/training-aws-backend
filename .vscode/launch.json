@@ -14,10 +14,7 @@
       "outputCapture": "std",
       "internalConsoleOptions": "openOnSessionStart",
       "autoAttachChildProcesses": true,
-      "skipFiles": [
-        "${workspaceRoot}/node_modules/**/*",
-        "<node_internals>/**/*"
-      ],
+      "skipFiles": ["${workspaceRoot}/node_modules/**/*", "<node_internals>/**/*"],
       "windows": {
         "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
       }
@@ -33,10 +30,7 @@
       "runtimeArgs": ["-r", "ts-node/register"],
       "outputCapture": "std",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": [
-        "${workspaceRoot}/node_modules/**/*",
-        "<node_internals>/**/*"
-      ],
+      "skipFiles": ["${workspaceRoot}/node_modules/**/*", "<node_internals>/**/*"],
       "windows": {
         "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
       }
@@ -62,10 +56,7 @@
       "outputCapture": "std",
       "internalConsoleOptions": "openOnSessionStart",
       "envFile": "${workspaceRoot}/.env",
-      "skipFiles": [
-        "${workspaceRoot}/../../node_modules/**/*",
-        "<node_internals>/**/*"
-      ],
+      "skipFiles": ["${workspaceRoot}/../../node_modules/**/*", "<node_internals>/**/*"],
       "windows": {
         "skipFiles": ["C:\\**\\node_modules\\**\\*", "<node_internals>/**/*"]
       },
