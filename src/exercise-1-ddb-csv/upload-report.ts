@@ -18,7 +18,7 @@ export class UploadReport {
     const accountId: string = await Utils.Service.getAccountId();
 
     const {
-      sourceTableName = 'exercise-1-ddb-csv-report-temp-data',
+      sourceTableName = DynamoDB.Tables.reportTempData,
       targetBucketName = `${accountId}-exercise-1-ddb-csv-reports`,
     }: Partial<IServiceConfig> = options;
 
@@ -30,8 +30,8 @@ export class UploadReport {
 
   public static async main(options: IMain): Promise<void> {
     const { reportId }: IMain = options;
-
     const now: number = Date.now();
+
     const csv: CSV.Stringifier = CSV.stringify({
       header: true,
       readableObjectMode: false,
@@ -42,7 +42,7 @@ export class UploadReport {
 
     const stream: Readable = uploadReport.source.createReadableStream({
       filters: { pk: reportId },
-      formatRow: ({ data }: DynamoDB.Row): DynamoDB.Row | null | undefined => data,
+      formatRow: ({ pk, sk, ...rest }: DynamoDB.Row): DynamoDB.Row | null | undefined => rest,
     });
 
     await uploadReport.s3

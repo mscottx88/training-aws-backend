@@ -16,8 +16,8 @@ export const TOTAL_SEGMENTS: number = 10;
 export class ExtractReportData {
   public static async getConfig(options: Partial<IServiceConfig> = {}): Promise<IServiceConfig> {
     const {
-      sourceTableName = 'exercise-1-ddb-csv-report-data',
-      targetTableName = 'exercise-1-ddb-csv-report-temp-data',
+      sourceTableName = DynamoDB.Tables.reportData,
+      targetTableName = DynamoDB.Tables.reportTempData,
       totalSegments = TOTAL_SEGMENTS,
     }: Partial<IServiceConfig> = options;
 
@@ -42,10 +42,10 @@ export class ExtractReportData {
       };
 
       for await (const row of extractReportData.source.rows(selection)) {
-        const { pk, sk, ...data }: DynamoDB.Row = row;
+        const { pk, sk, ...rest }: DynamoDB.Row = row;
 
         yield {
-          data,
+          ...rest,
           pk: reportId,
           sk: `${pk}/${sk}`,
         };

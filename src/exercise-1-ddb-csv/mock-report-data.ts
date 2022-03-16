@@ -13,6 +13,7 @@ export class MockReportData extends DynamoDbAdapter.Service {
   public *mockRows(limit = DEFAULT_LIMIT): IterableIterator<DynamoDB.Row> {
     for (let index: number = 0; index < limit; index++) {
       yield {
+        acquisitionDate: new Date(Math.random() * 1641600000 + 1658448000000).toISOString(),
         createdAt: new Date().toISOString(),
         foo: 'bar',
         pk: uuid(),
