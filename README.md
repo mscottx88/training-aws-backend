@@ -6,6 +6,8 @@ Training for AWS-centric backend engineering.
 
 Follow these steps to perform setup of the application on your local machine and the AWS resources in your SSO account.
 
+---
+
 ## Dependencies
 
 ```sh
@@ -19,6 +21,22 @@ yarn install
 Follow the [instructions](https://github.com/FormidableLabs/training-docs/blob/main/docs/courses/cloud-infra/201/getting-started/account-setup.mdx) to setup an SSO user in the Formidable account.
 
 Follow the [instructions](https://github.com/FormidableLabs/training-docs/blob/main/docs/courses/cloud-infra/201/getting-started/_account-setup-aws.mdx#authenticating-with-aws) to work with Formidable SSO user credentials.
+
+---
+
+## VS Code
+
+Ensure your VS Code is up-to-date, as it gets updated every month or so.
+
+---
+
+### AWS Toolkit for VS Code
+
+There is a sweet VS Code extension you can install to help with looking at files in S3. It's called [AWS Toolkit for VS Code](https://docs.aws.amazon.com/toolkit-for-vscode/index.html).
+
+Since you've gotten the [AWS SSO permissions](#aws-sso-permissions) setup in your `~/.aws/config` file, open the command palette in VS Code. Then run the `AWS: Choose AWS Profile...` command. Tell VS Code to use your `formidable-training` profile.
+
+If you complete this installation, you can easily inspect the files generated in S3. There are many other services that this toolkit supports.
 
 ---
 
@@ -117,6 +135,8 @@ yarn aws:console
 The intent of this repository is to help with hands-on learning AWS-centric backend engineering.
 
 Different exercises have different goals. See the READMEs for those exercises for more information.
+
+---
 
 ## Exercises
 
