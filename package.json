@@ -1,7 +1,6 @@
 {
   "name": "training-aws-backend",
   "version": "1.0.0",
-  "main": "index.js",
   "repository": "https://github.com/mscottx88/training-aws-backend.git",
   "author": "Michael P. Scott <michael.scott123@t-mobile.com>",
   "private": true,
