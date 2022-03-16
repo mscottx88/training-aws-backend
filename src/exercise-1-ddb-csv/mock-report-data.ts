@@ -1,5 +1,5 @@
 import { v1 as uuid } from 'uuid';
-import { Row } from './dynamo-db';
+import type { Row } from './dynamo-db';
 import { DynamoDbAdapter } from './dynamo-db-adapter';
 
 export const DEFAULT_LIMIT: number = 1000;

@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 import * as CSV from 'csv-stringify';
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 import { Utils } from '../utils';
 import * as DynamoDB from './dynamo-db';
 
